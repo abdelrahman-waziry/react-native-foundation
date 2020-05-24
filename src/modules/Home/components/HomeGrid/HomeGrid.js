@@ -1,5 +1,7 @@
 import React from 'react'
-import { View, Image, Text, FlatList, Dimensions, TouchableHighlight } from 'react-native'
+import { View, Image, Text, FlatList, Dimensions, TouchableHighlight, Linking} from 'react-native'
+import * as FileSystem from 'expo-file-system';
+import { connectActionSheet, ActionSheetProvider } from '@expo/react-native-action-sheet'
 import Unsplash, { toJson } from 'unsplash-js'
 import { styles } from './style'
 import {Entypo} from '@expo/vector-icons'
@@ -65,11 +67,32 @@ class HomeGrid extends React.Component {
                     data={this.state.photos}
                     key={this.state.viewType}
                     numColumns={this.state.viewType === 'Grid' ? 2 : 1}
-                    keyExtractor={item => item.id}
+                    keyExtractor={(item, i) => i}
                     renderItem={({ item }) => (
-                        <TouchableWithoutFeedback onPress={() => {
-                            this.props.navigateToPost(item)
-                        }}>
+                        <TouchableWithoutFeedback 
+                            onLongPress={() => {
+                                const cancelButtonIndex = 2;
+                                this.props.showActionSheetWithOptions(
+                                    {
+                                        options: ['Download', `Visit @${item.user.first_name} Page`, 'Cancel'],
+                                        cancelButtonIndex,
+                                    },
+                                    buttonIndex => {
+                                        if(buttonIndex === 0){
+                                            FileSystem.downloadAsync(item.links.download, `${FileSystem.documentDirectory} ${item.id}`).then(({uri}) => {
+                                                console.log(uri)
+                                            })
+                                        }
+                                        else if (buttonIndex === 1){
+                                            Linking.openURL(item.user.links.html);
+                                        }
+                                    },
+                                );
+                            }}
+                            onPress={() => {
+                                this.props.navigateToPost(item)
+                            }}
+                        >
                             <Image 
                                 source={{uri: item.urls.full}} 
                                 style={{...styles.imageContainer, width: this.state.width}}
@@ -91,4 +114,6 @@ class HomeGrid extends React.Component {
     }
 }
 
-export default HomeGrid
+const connectedHomeGrid = connectActionSheet(HomeGrid)
+
+export default connectedHomeGrid

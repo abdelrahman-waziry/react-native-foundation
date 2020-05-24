@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { ActionSheetProvider } from '@expo/react-native-action-sheet'
 import Constants from 'expo-constants';
 import store from './src/store'
 import {Provider} from 'react-redux'
